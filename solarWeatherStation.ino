@@ -45,7 +45,7 @@ float volt;
 
 const char* mqtt_user = "********";
 const char* mqtt_pass = "********";
-const char* mqtt_device = "SolarWeatherStation";
+const char* mqtt_device = "SolarWeatherStationNumber1";
 
 // FORECAST CALCULATION
 unsigned long current_timestamp;    // Actual timestamp read from NTPtime_t now;
@@ -67,7 +67,7 @@ void setup() {
   //******Battery Voltage Monitoring (first thing to do: is battery still ok?)***********
   
   // Voltage divider R1 = 220k+100k+100k =420k and R2=100k
-  float calib_factor = 4.19; // change this value to calibrate the battery voltage
+  float calib_factor = 4.18; // change this value to calibrate the battery voltage
   unsigned long raw = analogRead(A0);
   volt = raw * calib_factor/1024; 
   
@@ -78,7 +78,7 @@ void setup() {
   // **************Application going online**********************************************
   
   WiFi.mode(WIFI_STA);
-  WiFi.hostname("SolarWeatherStation"); //This changes the hostname of the ESP8266 to display neatly on the network esp on router.
+  WiFi.hostname("SolarWeatherStationBuiten"); //This changes the hostname of the ESP8266 to display neatly on the network esp on router.
   WiFi.begin(ssid, pass);
   Serial.print("---> Connecting to WiFi ");
   int i = 0;
@@ -101,7 +101,7 @@ void setup() {
    
   connect_to_MQTT();            // connecting to MQTT broker
 
-  client.publish("home/debug", "SolarWeatherstation: Sensor started");
+  client.publish("home/debug", "SolarWeatherstationBuiten: Sensor started");
   delay(50);
   
   //*****************Checking if SPIFFS available********************************
@@ -179,20 +179,23 @@ void setup() {
   char _measured_temp[8];                                // Buffer big enough for 7-character float
   dtostrf(measured_temp, 3, 1, _measured_temp);               // Leave room for too large numbers!
 
-  client.publish("home/weather/solarweatherstation/tempc", _measured_temp, 1);      // ,1 = retained
-  delay(50);
+  client.publish("home/weather/solarweatherstation1/tempc", _measured_temp, 1);      // ,1 = retained
+  Serial.println("Publish Temp");
+  delay(150);
   
   char _measured_humi[8];                                // Buffer big enough for 7-character float
   dtostrf(measured_humi, 3, 0, _measured_humi);               // Leave room for too large numbers!
 
-  client.publish("home/weather/solarweatherstation/humi", _measured_humi, 1);      // ,1 = retained
-  delay(50);
+  client.publish("home/weather/solarweatherstation1/humi", _measured_humi, 1);      // ,1 = retained
+  Serial.println("Publish HUM");
+  delay(150);
 
   char _volt[8];                                // Buffer big enough for 7-character float
   dtostrf(volt, 3, 2, _volt);               // Leave room for too large numbers!
 
-  client.publish("home/weather/solarweatherstation/battv", _volt, 1);      // ,1 = retained
-  delay(50);
+  client.publish("home/weather/solarweatherstation1/battv", _volt, 1);      // ,1 = retained
+  Serial.println("Publish BAT");
+  delay(150);
 
   if (volt > 3.3) {          //check if batt still ok, if yes
     goToSleep(10); //go for a nap
@@ -307,7 +310,7 @@ void reconnect() {
     if(client.connect(mqtt_device, mqtt_user, mqtt_pass)) {
       Serial.println("connected");
        // Once connected, publish an announcement...
-      client.publish("home/debug", "SolarWeatherstation: client started...");
+      client.publish("home/debug", "SolarWeatherstationBuiten: client started...");
       delay(50);
     } else {
       Serial.print(" ...failed, rc=");
@@ -321,7 +324,7 @@ void reconnect() {
 
 void goToSleep(unsigned int sleepmin) {
   char tmp[128];
-  String sleepmessage = "SolarWeatherstation: Taking a nap for " + String (sleepmin) + " Minutes";
+  String sleepmessage = "SolarWeatherstationBuiten: Taking a nap for " + String (sleepmin) + " Minutes";
   sleepmessage.toCharArray(tmp, 128);
   client.publish("home/debug",tmp);
   delay(50);
